@@ -1,13 +1,25 @@
 # iDetect-AI-powered-Retinal-Disease-Detection-from-Fundus-Images
 
-## Introduction
-Enhanced Stable Diffusion is a cutting-edge deep learning project that redefines artistic image generation by leveraging an advanced diffusion process to convert textual descriptions into high-quality images. By integrating a modified UNet architecture with innovative loss functions and enhanced data augmentation strategies, the model iteratively refines a latent noise vector conditioned on text embeddings to produce detailed and visually compelling artwork. This approach not only addresses common challenges such as slow inference times and output inconsistencies found in traditional diffusion models, but also pushes the boundaries of creative image synthesis, paving the way for novel applications in art, design, and multimedia content creation.
-
 ## Project Metadata
 ### Authors
-- **Team:** Mohammad Ahmad, Umar Abdullah and Malik Hussain
+- **Team:** Name1, Namw2
 - **Supervisor Name:** Dr. Muzammil Behzad
-- **Affiliations:** SABIC, ARAMCO and KFUPM
+- **Affiliations:** SABIC, ARAMCO and KFUPM (write your institution name, and/or KFUPM)
+
+## Introduction
+Write 1-2 technical paragraphs (feel free to add images if you would like).
+
+## Problem Statement
+Write 1-2 technical paragraphs (feel free to add images if you would like).
+
+## Application Area and Project Domain
+Write 1-2 technical paragraphs (feel free to add images if you would like).
+
+## What is the paper trying to do, and what are you planning to do?
+Write 1-2 technical paragraphs (feel free to add images if you would like).
+
+
+# THE FOLLOWING IS SUPPOSED TO BE DONE LATER
 
 ### Project Documents
 - **Presentation:** [Project Presentation](/presentation.pptx)
