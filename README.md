@@ -2,21 +2,41 @@
 
 ## Project Metadata
 ### Authors
-- **Team:** Name1, Namw2
+- **Team:** Shahbaaz Ahmed Sadiq, Fahad Alothman
 - **Supervisor Name:** Dr. Muzammil Behzad
 - **Affiliations:** SABIC, ARAMCO and KFUPM (write your institution name, and/or KFUPM)
 
 ## Introduction
-Write 1-2 technical paragraphs (feel free to add images if you would like).
+Retinal diseases such as diabetic retinopathy, glaucoma, and age-related macular degeneration are among the leading causes of vision loss worldwide. Detecting these conditions early through color fundus imaging is critical, since timely treatment can often prevent permanent damage. However, manual diagnosis is not only time-consuming but also heavily dependent on the availability and expertise of ophthalmologists, which creates challenges in many parts of the world. Advances in artificial intelligence, particularly in deep learning, have opened new possibilities for automating this process and making retinal disease screening more accurate and accessible. Building on recent research in vision–language models, this project, titled iDetect: AI powered Retinal Disease Detection from Fundus Images, focuses on developing an intelligent system that can classify retinal diseases using the Peacein color fundus eye dataset. By combining state-of-the-art pretrained models with fine-tuning for specific conditions, the project aims to create a tool that could support doctors in making faster and more reliable diagnoses, ultimately helping patients receive timely care.
 
 ## Problem Statement
-Write 1-2 technical paragraphs (feel free to add images if you would like).
+Retinal diseases such as diabetic retinopathy, glaucoma, age-related macular degeneration, and central serous chorioretinopathy cause structural changes in the fundus that may be subtle and difficult to detect, especially in early stages. Manual screening by expert ophthalmologists is laborious, time-consuming, and subject to intra-observer variability. Moreover, many regions lack access to specialists, increasing risk of late diagnosis. The problem, then, is to develop an automated method that can reliably classify or detect multiple retinal pathologies from color fundus photographs (CFPs) with high sensitivity and specificity across diverse patient populations and imaging conditions.
+
+From a machine learning angle, the challenge is to build a model that generalizes well across multiple diseases, handles class imbalance, copes with differences in imaging devices and patient populations, and ideally captures good feature representations so that downstream tasks (classification, multi-label detection, disease localization) perform robustly. In particular, one would like to explore how to leverage large-scale pretraining, multi-modal learning (e.g. combining images and diagnostic reports), and transfer learning to overcome limited annotated data in each disease category.
 
 ## Application Area and Project Domain
-Write 1-2 technical paragraphs (feel free to add images if you would like).
+Our project lies at the intersection of medical image analysis (ophthalmic imaging) and AI/vision + clinical decision support systems. The application area is ophthalmology / retinal disease screening.
+The domain is diagnostic support: We aim to assist or augment clinicians in screening retinal fundus images, flagging high-risk cases or referring those needing further examination.
 
 ## What is the paper trying to do, and what are you planning to do?
-Write 1-2 technical paragraphs (feel free to add images if you would like).
+### What the RET-CLIP Paper Does
+
+The RET-CLIP paper presents a foundation-style vision-language model tailored for retinal imaging. It uses a large-scale dataset of color fundus photographs paired with clinical diagnostic reports (text) to pretrain a CLIP-style embedding: mapping images and corresponding textual diagnostic descriptions into a shared embedding space. They adopt a tripartite optimization scheme at the left-eye, right-eye, and patient level to reflect clinical relationships. After pretraining, RET-CLIP is fine-tuned or adapted for downstream tasks across multiple retinal disease classification benchmarks (diabetic retinopathy, glaucoma, multi-label disease diagnosis) and achieves state-of-the-art performance across eight datasets. The strength lies in learning strong, generalizable retinal image features via vision-text co-training, so that fewer labels are needed for downstream tasks.
+
+### What You Intend to Do
+
+In our project iDetect, we will build upon the RET-CLIP idea but apply it to the Peacein / color-fundus-eye dataset (≈ 16,242 images, 10 classes) from Hugging Face. 
+Specifically, we might:
+
+- Use the pretrained RET-CLIP model as a backbone or initialization, and fine-tune it (or adapt it) to classify our dataset’s disease categories.
+
+- Possibly extend or adapt the CLIP framework by pairing images with textual labels or synthetic diagnostic textual descriptions (if available or generated) to refine the cross-modal embedding on our specific disease set.
+
+- Evaluate performance on multi-class (or multi-label) classification and compare against conventional CNN baselines (ResNet, EfficientNet, etc.), demonstrating the benefit of RET-CLIP-driven features.
+
+- Optionally, we could incorporate localization or attention maps (e.g. Grad-CAM) or textual rationales (if report texts are available) to provide interpretability in our application.
+
+Thus, while RET-CLIP proposes a general retinal foundation model across many datasets, our work will concretely instantiate and validate its benefits (or explore limitations) on a single curated dataset (color-fundus-eye) in the context of a practical retinal disease detection system. We might also explore domain adaptation, robustness to device variance, or lightweight deployment.
 
 
 # THE FOLLOWING IS SUPPOSED TO BE DONE LATER
