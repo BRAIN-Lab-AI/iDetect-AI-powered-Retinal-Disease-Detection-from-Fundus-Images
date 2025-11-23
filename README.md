@@ -32,10 +32,10 @@ This project adapts the RET-CLIP idea using the Peacein/color-fundus-eye dataset
 - **Report:** [Project Report](/report.pdf)
 
 ### Reference Paper
-- [High-Resolution Image Synthesis with Latent Diffusion Models](https://arxiv.org/abs/2112.10752)
+- [RET-CLIP: A Retinal Image Foundation Model Pre-trained with Clinical Diagnostic Reports](https://arxiv.org/abs/2405.14137)
 
 ### Reference Dataset
-- [LAION-5B Dataset](https://laion.ai/blog/laion-5b/)
+- [Ocular Disease Intelligent Recognition (ODIR-5K)](https://www.kaggle.com/datasets/andrewmvd/ocular-disease-recognition-odir5k)
 
 
 ## Project Technicalities
