@@ -23,9 +23,7 @@ The RET-CLIP paper presents a foundation-style vision-language model tailored fo
 
 ### What You Intend to Do
 
-This project adapts the RET-CLIP idea using the Peacein/color-fundus-eye dataset (~16k images, 10 classes). Since the original RET-CLIP used a private clinical dataset, we will create synthetic text prompts from class labels (e.g., “fundus image showing diabetic retinopathy”) to form image–text pairs. With these, we will train a mini CLIP-style model via contrastive learning, then fine-tune the image encoder with a classifier head for multi-class retinal disease detection. Finally, we will compare this with a standard image-only baseline (ResNet/ViT) to assess the benefits of vision–language pretraining.
-
-# THE FOLLOWING IS SUPPOSED TO BE DONE LATER
+We implement the RET-CLIP approach on the ODIR-5K binocular fundus dataset (left + right eye per patient). Instead of the paper’s original Chinese text tower, we use English biomedical encoders (PubMedBERT/BioBERT) and generate plain-English, side-aware prompts from the ODIR keywords (e.g., “left eye: signs of diabetic changes,” “right eye: normal”). We build a clean, fast pipeline (resize to 224×224, normalize, pack to LMDB with split artifacts) and train/evaluate in two modes: (1) zero-shot, where the model predicts by matching images to prompts, and (2) a linear probe, where a small logistic-regression head is trained on frozen image features to measure feature separability. We report Accuracy, Macro-F1, and Weighted-F1, analyze confusion matrices, and (optionally) compare against a vision-only baseline (e.g., ViT-B/16) to quantify the benefit of adding text prompts and English biomedical encoders.
 
 ### Project Documents
 - **Presentation:** [Project Presentation](/presentation.pptx)
@@ -41,38 +39,60 @@ This project adapts the RET-CLIP idea using the Peacein/color-fundus-eye dataset
 ## Project Technicalities
 
 ### Terminologies
-- **Diffusion Model:** A generative model that progressively transforms random noise into coherent data.
-- **Latent Space:** A compressed, abstract representation of data where complex features are captured.
-- **UNet Architecture:** A neural network with an encoder-decoder structure featuring skip connections for better feature preservation.
-- **Text Encoder:** A model that converts text into numerical embeddings for downstream tasks.
-- **Perceptual Loss:** A loss function that measures high-level differences between images, emphasizing perceptual similarity.
-- **Tokenization:** The process of breaking down text into smaller units (tokens) for processing.
-- **Noise Vector:** A randomly generated vector used to initialize the diffusion process in generative models.
-- **Decoder:** A network component that transforms latent representations back into image space.
-- **Iterative Refinement:** The process of gradually improving the quality of generated data through multiple steps.
-- **Conditional Generation:** The process where outputs are generated based on auxiliary inputs, such as textual descriptions.
-
+- **Fundus Image:** A color photo of the back of the eye (retina), showing the optic disc, macula, and vessels.
+- **Binocular Input (Left/Right):** Using both eyes’ images together; differences between eyes can be diagnostic.
+- **Laterality:** Whether an image is from the left or right eye; we keep this in prompts and metadata.
+- **Text Encoder (PubMedBERT/BioBERT):** The language model that turns a prompt into a numeric embedding.
+- **Vision Encoder (ViT-B/16):** The image model that turns a fundus image into a numeric feature vector.
+- **Tokenization:** Splitting a prompt into tokens (sub-words) so the text encoder can process it.
+- **Embedding (Image/Text):** The numeric vector produced by encoders; used to compare images with prompts.
+- **Contrastive Learning (CLIP-style / InfoNCE):** Training that pulls matching image–text pairs together in the embedding space and pushes non-matching pairs apart.
+- **Cosine Similarity:** A score measuring how close an image embedding is to a prompt embedding (used for zero-shot predictions).
+- **Zero-Shot Classification:** Predicting a condition by matching an image directly to text prompts—no task-specific training head needed.
+- **Linear Probe:** A small classifier (logistic regression) trained on frozen image features to test how linearly separable the features are.
+- **LMDB (Data Store):** A fast key-value database we use to store images for quick, reproducible loading.
+- **Calibration:** Adjusting scores so confidence better reflects correctness (useful for clinical settings).
+  
 ### Problem Statements
-- **Problem 1:** Achieving high-resolution and detailed images using conventional diffusion models remains challenging.
-- **Problem 2:** Existing models suffer from slow inference times during the image generation process.
-- **Problem 3:** There is limited capability in performing style transfer and generating diverse artistic variations.
+- **Problem 1:** Language mismatch and prompt sensitivity. Using English prompts with a non-English (Chinese) text encoder—and limited coverage of synonyms/abbreviations—makes zero-shot predictions unstable and lowers accuracy.
+- **Problem 2:** Limited compute and runtime instability. Running on a CPU-only PC with tight RAM caused very slow training/feature extraction, out-of-memory errors, and occasional runtime disconnections, slowing experimentation and reproducibility.
+- **Problem 3:** Dataset and evaluation challenges. ODIR-5K has class imbalance, variable image quality, and occasional left/right (laterality) issues; together with domain shift, these factors depress Macro-F1, increase class confusions, and require better calibration and binocular handling.
 
 ### Loopholes or Research Areas
 - **Evaluation Metrics:** Lack of robust metrics to effectively assess the quality of generated images.
 - **Output Consistency:** Inconsistencies in output quality when scaling the model to higher resolutions.
 - **Computational Resources:** Training requires significant GPU compute resources, which may not be readily accessible.
+- **Prompt and language robustness:** Zero-shot performance depends on wording and encoder language. We should study English biomedical encoders vs. non-English text towers, build prompt ensembles/templates, and quantify how paraphrases, abbreviations, and negations affect results.
 
 ### Problem vs. Ideation: Proposed 3 Ideas to Solve the Problems
-1. **Optimized Architecture:** Redesign the model architecture to improve efficiency and balance image quality with faster inference.
-2. **Advanced Loss Functions:** Integrate novel loss functions (e.g., perceptual loss) to better capture artistic nuances and structural details.
-3. **Enhanced Data Augmentation:** Implement sophisticated data augmentation strategies to improve the model’s robustness and reduce overfitting.
+1. **Problem 1 — Language mismatch & prompt sensitivity → Idea 1: Language-robust zero-shot**
+   - Swap the text tower to English biomedical encoders (PubMedBERT/BioBERT).
+   - Use prompt templates/ensembles (full name + synonyms + abbreviations; side-aware wording).
+   - Add a fallback: auto-translate prompts to the encoder’s native language if needed and compare.
+   - Run a prompt-sensitivity suite (paraphrases, abbreviations, negations) and keep the best-performing prompt set.
+   
+2. **Problem 2 — Limited compute & runtime instability → Idea 2: Resource-aware training loop**
+   - Cache features to LMDB and reuse them; start with linear-probe-first to iterate fast.
+   - Use smaller batches, fewer workers, and gradient accumulation (when on GPU) to avoid OOM.
+   - Prefer lightweight adapter/LoRA tuning on the text tower instead of full finetuning.
+   - Add resume checkpoints and shorter “smoke tests” to avoid losing progress on disconnections.
+     
+3. **Problem 3 — Dataset/evaluation challenges (imbalance, binocular noise, domain shift) → Idea 3: Binocular consistency + calibration**
+   - Enforce inter-eye consistency with simple augmentations: eye-swap, single-eye dropout, and laterality checks; add basic quality filters (blurry/overexposed reject).
+   - Use class-aware sampling or threshold tuning to mitigate imbalance; always report Macro-F1 alongside Weighted-F1.
+   - Add calibration (temperature scaling) and an abstain option for low-confidence zero-shot predictions.
+   - Test domain shift with prompt ensembles and small adapter tweaks; log per-class precision/recall and confusion matrices to pinpoint failures.
 
 ### Proposed Solution: Code-Based Implementation
-This repository provides an implementation of the enhanced stable diffusion model using PyTorch. The solution includes:
+This repository implements a RET-CLIP style retinal pipeline in PyTorch that aligns pairs of fundus photos (left/right) with plain-English clinical prompts and evaluates both zero-shot and linear-probe performance.
 
-- **Modified UNet Architecture:** Incorporates residual connections and efficient convolutional blocks.
-- **Novel Loss Functions:** Combines Mean Squared Error (MSE) with perceptual loss to enhance feature learning.
-- **Optimized Training Loop:** Reduces computational overhead while maintaining performance.
+- Vision & text towers: ViT-B/16 for images and English biomedical text encoders (PubMedBERT/BioBERT) for prompts.
+- Training objective: CLIP-style contrastive (InfoNCE) with binocular pairing (left↔text, right↔text), optimized with AdamW and a cosine LR schedule with warm-up.
+- Data pipeline: deterministic 224×224 resize + normalization, side-aware prompt generation from ODIR keywords, and LMDB + JSONL/TSV/CSV artifacts for fast, reproducible I/O.
+- Evaluations:
+  - Zero-shot: classify by matching image embeddings to prompt embeddings via cosine similarity.
+  - Linear probe: train a small logistic regression on frozen image features to assess feature separability.
+- Utilities: split builders, feature extractors, confusion-matrix plotting, and prompt-ensemble hooks.
 
 ### Key Components
 - **`model.py`**: Contains the modified UNet architecture and other model components.
@@ -84,47 +104,62 @@ This repository provides an implementation of the enhanced stable diffusion mode
 The workflow of the Enhanced Stable Diffusion model is designed to translate textual descriptions into high-quality artistic images through a multi-step diffusion process:
 
 1. **Input:**
-   - **Text Prompt:** The model takes a text prompt (e.g., "A surreal landscape with mountains and rivers") as the primary input.
-   - **Tokenization:** The text prompt is tokenized and processed through a text encoder (such as a CLIP model) to obtain meaningful embeddings.
-   - **Latent Noise:** A random latent noise vector is generated to initialize the diffusion process, which is then conditioned on the text embeddings.
+   - Pairs of fundus photos (left and right eye) from ODIR-5K, plus short, plain-English descriptions (prompts) derived from the dataset keywords (e.g., “left eye: signs of diabetic changes”, “right eye: normal”).
+   - Images are resized to 224×224 and normalized; prompts are lowercased, cleaned, and tokenized.
 
-2. **Diffusion Process:**
-   - **Iterative Refinement:** The conditioned latent vector is fed into a modified UNet architecture. The model iteratively refines this vector by reversing a diffusion process, gradually reducing noise while preserving the text-conditioned features.
-   - **Intermediate States:** At each step, intermediate latent representations are produced that increasingly capture the structure and details dictated by the text prompt.
+2. **Feature encoding**
+   - Image side: a ViT-B/16 vision encoder turns each eye photo into an image embedding.
+   - Text side: an English biomedical text encoder (PubMedBERT/BioBERT) turns each prompt into a text embedding.
 
-3. **Output:**
-   - **Decoding:** The final refined latent representation is passed through a decoder (often part of a Variational Autoencoder setup) to generate the final image.
-   - **Generated Image:** The output is a synthesized image that visually represents the input text prompt, complete with artistic style and detail.
+3. **Training loop (feature learning)**
+   - CLIP-style contrastive learning aligns matching image–text pairs and separates non-matches.
+   - Binocular pairing is used: left↔prompt and right↔prompt (optionally encouraging inter-eye consistency).
+   - Optimization follows the CLIP recipe (AdamW + cosine learning-rate with warm-up).
+     
+4. **Zero-shot inference**
+   - For each image, compute cosine similarity to all class prompts.
+   - Pick the nearest prompt to predict the condition (single prompt or an ensemble of prompt phrasings).
 
-## How to Run the Code
+5. **Linear-probe evaluation**
+   - Freeze the image encoder and extract image features for train/test splits.
+   - Train a multinomial logistic-regression classifier on the training features.
+   - Evaluate on the test set to measure how linearly separable the learned features are.
 
-1. **Clone the Repository:**
-    ```bash
-    git clone https://github.com/yourusername/enhanced-stable-diffusion.git
-    cd enhanced-stable-diffusion
-    ```
+6. **Outputs**
+   - Metrics: Top-1 Accuracy, Macro-F1, Weighted-F1.
+   - Diagnostic plots: confusion matrix to visualize class confusions.
 
-2. **Set Up the Environment:**
-    Create a virtual environment and install the required dependencies.
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate  # On Windows use: venv\Scripts\activate
-    pip install -r requirements.txt
-    ```
+## Pipeline Overview
 
-3. **Train the Model:**
-    Configure the training parameters in the provided configuration file and run:
-    ```bash
-    python train.py --config configs/train_config.yaml
-    ```
+1. Setup & Configuration        → Install packages, authenticate APIs
+2. Load ODIR-5K Dataset         → Auto-download with kagglehub + metadata
+3. Generate Clinical Prompts    → DSPy + OpenRouter (3 prompts/patient)
+4. Preprocess for RET-CLIP      → TSV + JSONL with eye_side annotations
+5. Build LMDB Database          → Efficient PyTorch DataLoader format
+6. Train RET-CLIP               → 10 epochs contrastive learning
+7. Zero-Shot Evaluation         → Vision-language alignment test
+8. Linear Probing Evaluation    → Feature quality assessment
+9. Final Report                 → Metrics, comparison, artifacts
 
-4. **Generate Images:**
-    Once training is complete, use the inference script to generate images.
-    ```bash
-    python inference.py --checkpoint path/to/checkpoint.pt --input "A surreal landscape with mountains and rivers"
-    ```
+## Prerequisites
 
+1. **Google Colab** with A100 GPU (or T4 for testing)
+2. **API Keys** (add to Colab Secrets - 🔑 icon in left sidebar):
+   - `HF_TOKEN`: HuggingFace token from https://huggingface.co/settings/tokens
+   - `OPENROUTER_API_KEY`: OpenRouter key from https://openrouter.ai/keys
+   - `KAGGLE_USERNAME`: Your Kaggle username
+   - `KAGGLE_KEY`: Kaggle API key from https://www.kaggle.com/settings/account
+3. **ODIR-5K Dataset**: Will be downloaded automatically via kagglehub## Prerequisites
+
+ ## ⏱️ Estimated Runtime
+
+| Mode | Patients | Prompts Time | Training Time | Total |
+|------|----------|--------------|---------------|-------|
+| TEST | 100 | ~30 min | ~30 min (2 epochs) | **~2-3 hours** |
+| FULL | 5,000 | ~4-5 hours | ~12-15 hours (10 epochs) | **~18-24 hours** |
+   
 ## Acknowledgments
-- **Open-Source Communities:** Thanks to the contributors of PyTorch, Hugging Face, and other libraries for their amazing work.
-- **Individuals:** Special thanks to bla, bla, bla for the amazing team effort, invaluable guidance and support throughout this project.
-- **Resource Providers:** Gratitude to ABC-organization for providing the computational resources necessary for this project.
+- **Open-Source Communities:** We’re grateful to the communities behind PyTorch, Hugging Face Transformers, scikit-learn, NumPy, Pandas, Pillow, Matplotlib, and LMDB—the RET-CLIP + ODIR pipeline in this repo depends on their work.
+- **Datasets & references:** Thanks to the ODIR-5K contributors and hosting on Kaggle for providing accessible binocular fundus images and keywords that made our experiments possible, and to the RET-CLIP authors for inspiring the vision-language approach we adapted.
+- **Mentorship & teamwork:** Sincere thanks to our supervisor, Dr. Muzammil Behzad, for guidance and feedback throughout, and to our team—Shahbaaz Ahmed Sadiq and Fahad Alothman—for the sustained effort on data prep, modeling, and evaluation.
+- **Resource Providers:** Gratitude to Google Colab for providing the computational resources necessary for this project.
