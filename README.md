@@ -95,10 +95,8 @@ This repository implements a RET-CLIP style retinal pipeline in PyTorch that ali
 - Utilities: split builders, feature extractors, confusion-matrix plotting, and prompt-ensemble hooks.
 
 ### Key Components
-- **`model.py`**: Contains the modified UNet architecture and other model components.
-- **`train.py`**: Script to handle the training process with configurable parameters.
-- **`utils.py`**: Utility functions for data processing, augmentation, and metric evaluations.
-- **`inference.py`**: Script for generating images using the trained model.
+- **`[generate_retclip_prompts.ipynb]`**: Contains the code to generate prompts.
+- **`[ODIR_RETCLIP_UNIFIED_PIPELINE.ipynb]`**: Contains the main code.
 
 ## Model Workflow
 The workflow of the Enhanced Stable Diffusion model is designed to translate textual descriptions into high-quality artistic images through a multi-step diffusion process:
