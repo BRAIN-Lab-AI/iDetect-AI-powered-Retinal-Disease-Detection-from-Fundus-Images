@@ -26,8 +26,8 @@ The RET-CLIP paper presents a foundation-style vision-language model tailored fo
 We implement the RET-CLIP approach on the ODIR-5K binocular fundus dataset (left + right eye per patient). Instead of the paper’s original Chinese text tower, we use English biomedical encoders (PubMedBERT/BioBERT) and generate plain-English, side-aware prompts from the ODIR keywords (e.g., “left eye: signs of diabetic changes,” “right eye: normal”). We build a clean, fast pipeline (resize to 224×224, normalize, pack to LMDB with split artifacts) and train/evaluate in two modes: (1) zero-shot, where the model predicts by matching images to prompts, and (2) a linear probe, where a small logistic-regression head is trained on frozen image features to measure feature separability. We report Accuracy, Macro-F1, and Weighted-F1, analyze confusion matrices, and (optionally) compare against a vision-only baseline (e.g., ViT-B/16) to quantify the benefit of adding text prompts and English biomedical encoders.
 
 ### Project Documents
-- **Presentation:** [Project Presentation](/presentation.pptx)
-- **Report:** [Project Report](/report.pdf)
+- **Presentation:** [Project Presentation](/iDETECT.pptx)
+- **Report:** [Project Report](/ICS 504 - PROJECT Report.pdf)
 
 ### Reference Paper
 - [RET-CLIP: A Retinal Image Foundation Model Pre-trained with Clinical Diagnostic Reports](https://arxiv.org/abs/2405.14137)
