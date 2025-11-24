@@ -27,7 +27,7 @@ We implement the RET-CLIP approach on the ODIR-5K binocular fundus dataset (left
 
 ### Project Documents
 - **Presentation:** [Project Presentation](/iDETECT.pptx)
-- **Report:** [Project Report](/ICS 504 - PROJECT Report.pdf)
+- **Report:** [Project Report](/iDetect_Report.pdf)
 
 ### Reference Paper
 - [RET-CLIP: A Retinal Image Foundation Model Pre-trained with Clinical Diagnostic Reports](https://arxiv.org/abs/2405.14137)
