@@ -1,0 +1,8 @@
+{
+  "encoder_name": "BioBERT",
+  "accuracy": 0.45634266886326197,
+  "f1_macro": 0.08716192654848257,
+  "f1_weighted": 0.2932696428187066,
+  "num_train_samples": 2427,
+  "num_test_samples": 607
+}

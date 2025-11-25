@@ -1,0 +1,8 @@
+{
+  "encoder_name": "PubMedBERT",
+  "accuracy": 0.10378912685337727,
+  "f1_macro": 0.08146344270291841,
+  "f1_weighted": 0.08841571830393206,
+  "num_test_samples": 607,
+  "num_classes": 8
+}

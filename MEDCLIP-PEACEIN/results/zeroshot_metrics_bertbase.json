@@ -1,0 +1,8 @@
+{
+  "encoder_name": "BERT-base",
+  "accuracy": 0.07742998352553541,
+  "f1_macro": 0.05822437952463477,
+  "f1_weighted": 0.09053715426650838,
+  "num_test_samples": 607,
+  "num_classes": 8
+}
