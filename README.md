@@ -147,7 +147,7 @@ The workflow of the Enhanced Stable Diffusion model is designed to translate tex
    - `OPENROUTER_API_KEY`: OpenRouter key from https://openrouter.ai/keys
    - `KAGGLE_USERNAME`: Your Kaggle username
    - `KAGGLE_KEY`: Kaggle API key from https://www.kaggle.com/settings/account
-3. **ODIR-5K Dataset**: Will be downloaded automatically via kagglehub## Prerequisites
+3. **ODIR-5K Dataset**: Will be downloaded automatically via kagglehub
 
  ## ⏱️ Estimated Runtime
 
