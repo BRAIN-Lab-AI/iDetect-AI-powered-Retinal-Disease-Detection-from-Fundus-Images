@@ -34,6 +34,7 @@ We implement the RET-CLIP approach on the ODIR-5K binocular fundus dataset (left
 
 ### Reference Dataset
 - [Ocular Disease Intelligent Recognition (ODIR-5K)](https://www.kaggle.com/datasets/andrewmvd/ocular-disease-recognition-odir5k)
+- [Peacein/color fundus eye (Hugging Face)](https://huggingface.co/datasets/Peacein/color-fundus-eye)
 
 
 ## Project Technicalities
